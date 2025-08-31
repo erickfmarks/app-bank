@@ -1,112 +1,79 @@
 const express = require('express');
 const path = require('path');
+const { Pool } = require('pg');
 const fs = require('fs');
 
 const app = express();
-const PORT = 3000;
+const PORT = 2000;
 
 // Middleware
 app.use(express.json());
 app.use(express.static('public'));
 
-// Diretório para dados
-const dataDir = path.join(__dirname, 'data');
-if (!fs.existsSync(dataDir)) {
-    fs.mkdirSync(dataDir);
+// Configuração do PostgreSQL
+const pool = new Pool({
+    user: "avnadmin",
+    password: "AVNS_z0p21G-xhFQOIF_T1eT",
+    host: "pg-app-bank-erickfmarks-8519.g.aivencloud.com",
+    port: 16029,
+    database: "app-bank",
+    ssl: {
+        rejectUnauthorized: false,
+        ca: fs.readFileSync(path.join(__dirname, 'ca.pem')).toString()
+    },
+});
+
+// Funções auxiliares para o banco
+async function getUser(username, password) {
+    const { rows } = await pool.query('SELECT * FROM users WHERE username = $1 AND password = $2', [username, password]);
+    return rows[0];
 }
 
-// Arquivos de dados
-const usersFile = path.join(dataDir, 'users.json');
-const transactionsFile = path.join(dataDir, 'transactions.json');
-const bankAccountsFile = path.join(dataDir, 'bank-accounts.json');
-const cofrinhosFile = path.join(dataDir, 'cofrinhos.json');
-
-// Funções auxiliares para carregar e salvar dados
-function loadUsers() {
-    try {
-        if (fs.existsSync(usersFile)) {
-            const data = fs.readFileSync(usersFile, 'utf8');
-            return JSON.parse(data);
-        }
-    } catch (error) {
-        console.error('Erro ao carregar usuários:', error);
-    }
-    
-    // Criar usuário padrão se não existir
-    const defaultUsers = [
-        { username: 'erick', password: '123' },
-        { username: 'admin', password: 'admin' }
-    ];
-    saveUsers(defaultUsers);
-    return defaultUsers;
+async function getTransactions(usuario, mes, ano) {
+    const { rows } = await pool.query('SELECT * FROM transactions WHERE usuario = $1 AND mes = $2 AND ano = $3', [usuario, mes, ano]);
+    return rows;
 }
 
-function saveUsers(users) {
-    try {
-        fs.writeFileSync(usersFile, JSON.stringify(users, null, 2));
-    } catch (error) {
-        console.error('Erro ao salvar usuários:', error);
+async function saveTransactions(usuario, mes, ano, transacoes) {
+    await pool.query('DELETE FROM transactions WHERE usuario = $1 AND mes = $2 AND ano = $3', [usuario, mes, ano]);
+    for (const t of transacoes) {
+        await pool.query(
+            'INSERT INTO transactions (usuario, mes, ano, tipo, descricao, valor, categoria, conta_bancaria, data) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)',
+            [usuario, mes, ano, t.tipo, t.descricao, t.valor, t.categoria, t.contaBancaria, t.data || new Date()]
+        );
     }
 }
 
-function loadTransactions() {
-    try {
-        if (fs.existsSync(transactionsFile)) {
-            const data = fs.readFileSync(transactionsFile, 'utf8');
-            return JSON.parse(data);
-        }
-    } catch (error) {
-        console.error('Erro ao carregar transações:', error);
-    }
-    return {};
+async function getBankAccounts(usuario, mes, ano) {
+    const { rows } = await pool.query('SELECT * FROM bank_accounts WHERE usuario = $1 AND mes = $2 AND ano = $3', [usuario, mes, ano]);
+    return rows;
 }
 
-function saveTransactions(transactions) {
-    try {
-        fs.writeFileSync(transactionsFile, JSON.stringify(transactions, null, 2));
-    } catch (error) {
-        console.error('Erro ao salvar transações:', error);
+async function saveBankAccounts(usuario, mes, ano, contas) {
+    await pool.query('DELETE FROM bank_accounts WHERE usuario = $1 AND mes = $2 AND ano = $3', [usuario, mes, ano]);
+    for (const c of contas) {
+        await pool.query(
+            'INSERT INTO bank_accounts (usuario, mes, ano, name, balance) VALUES ($1,$2,$3,$4,$5)',
+            [usuario, mes, ano, c.name, c.balance]
+        );
     }
 }
 
-function loadBankAccounts() {
-    try {
-        if (fs.existsSync(bankAccountsFile)) {
-            const data = fs.readFileSync(bankAccountsFile, 'utf8');
-            return JSON.parse(data);
-        }
-    } catch (error) {
-        console.error('Erro ao carregar contas bancárias:', error);
-    }
-    return {};
+async function getCofrinhos(usuario, mes, ano) {
+    const { rows } = await pool.query('SELECT * FROM cofrinhos WHERE usuario = $1 AND mes = $2 AND ano = $3', [usuario, mes, ano]);
+    return rows;
 }
 
-function saveBankAccounts(bankAccounts) {
-    try {
-        fs.writeFileSync(bankAccountsFile, JSON.stringify(bankAccounts, null, 2));
-    } catch (error) {
-        console.error('Erro ao salvar contas bancárias:', error);
-    }
+async function addCofrinho({ nome, valor, descricao, usuario, mes, ano }) {
+    const { rows } = await pool.query(
+        'INSERT INTO cofrinhos (usuario, mes, ano, nome, valor, descricao) VALUES ($1,$2,$3,$4,$5,$6) RETURNING *',
+        [usuario, mes, ano, nome, valor, descricao || '']
+    );
+    return rows[0];
 }
 
-function loadCofrinhos() {
-    try {
-        if (fs.existsSync(cofrinhosFile)) {
-            const data = fs.readFileSync(cofrinhosFile, 'utf8');
-            return JSON.parse(data);
-        }
-    } catch (error) {
-        console.error('Erro ao carregar cofrinhos:', error);
-    }
-    return {};
-}
-
-function saveCofrinhos(cofrinhos) {
-    try {
-        fs.writeFileSync(cofrinhosFile, JSON.stringify(cofrinhos, null, 2));
-    } catch (error) {
-        console.error('Erro ao salvar cofrinhos:', error);
-    }
+async function deleteCofrinho(id) {
+    await pool.query('DELETE FROM cofrinhos WHERE id = $1', [id]);
 }
 
 // Função para gerar chave única para dados por usuário/mês/ano
@@ -115,228 +82,150 @@ function generateKey(usuario, mes, ano) {
 }
 
 // Rotas de autenticação
-app.post('/api/login', (req, res) => {
+app.post('/api/login', async (req, res) => {
     const { username, password } = req.body;
-    
     if (!username || !password) {
-        return res.status(400).json({
-            success: false,
-            message: 'Usuário e senha são obrigatórios.'
-        });
+        return res.status(400).json({ success: false, message: 'Usuário e senha são obrigatórios.' });
     }
-    
-    const users = loadUsers();
-    const user = users.find(u => u.username === username && u.password === password);
-    
-    if (user) {
-        res.json({
-            success: true,
-            message: 'Login realizado com sucesso.',
-            user: { username: user.username }
-        });
-    } else {
-        res.status(401).json({
-            success: false,
-            message: 'Usuário ou senha incorretos.'
-        });
+    try {
+        const user = await getUser(username, password);
+        if (user) {
+            res.json({ success: true, message: 'Login realizado com sucesso.', user: { username: user.username } });
+        } else {
+            res.status(401).json({ success: false, message: 'Usuário ou senha incorretos.' });
+        }
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Erro interno do servidor.' });
     }
 });
 
 // Rotas para transações
-app.get('/api/transactions', (req, res) => {
+app.get('/api/transactions', async (req, res) => {
     const { usuario, mes, ano } = req.query;
-    
     if (!usuario || mes === undefined || !ano) {
         return res.status(400).json({ error: 'Parâmetros obrigatórios: usuario, mes, ano' });
     }
-    
-    const allTransactions = loadTransactions();
-    const key = generateKey(usuario, mes, ano);
-    const userTransactions = allTransactions[key] || [];
-    
-    res.json(userTransactions);
+    try {
+        const transacoes = await getTransactions(usuario, mes, ano);
+        res.json(transacoes);
+    } catch (error) {
+        res.status(500).json({ error: 'Erro ao buscar transações.' });
+    }
 });
 
-app.post('/api/transactions', (req, res) => {
+app.post('/api/transactions', async (req, res) => {
     const { usuario, mes, ano, transacoes } = req.body;
-    
     if (!usuario || mes === undefined || !ano || !Array.isArray(transacoes)) {
         return res.status(400).json({ error: 'Dados inválidos' });
     }
-    
-    const allTransactions = loadTransactions();
-    const key = generateKey(usuario, mes, ano);
-    allTransactions[key] = transacoes;
-    
-    saveTransactions(allTransactions);
-    res.json({ success: true });
+    try {
+        await saveTransactions(usuario, mes, ano, transacoes);
+        res.json({ success: true });
+    } catch (error) {
+        res.status(500).json({ error: 'Erro ao salvar transações.' });
+    }
 });
 
 // Rotas para contas bancárias
-app.get('/api/bank-accounts', (req, res) => {
+app.get('/api/bank-accounts', async (req, res) => {
     const { usuario, mes, ano } = req.query;
-    
     if (!usuario || mes === undefined || !ano) {
         return res.status(400).json({ error: 'Parâmetros obrigatórios: usuario, mes, ano' });
     }
-    
-    const allBankAccounts = loadBankAccounts();
-    const key = generateKey(usuario, mes, ano);
-    const userBankAccounts = allBankAccounts[key] || [];
-    
-    res.json(userBankAccounts);
+    try {
+        const contas = await getBankAccounts(usuario, mes, ano);
+        res.json(contas);
+    } catch (error) {
+        res.status(500).json({ error: 'Erro ao buscar contas bancárias.' });
+    }
 });
 
-app.post('/api/bank-accounts', (req, res) => {
+app.post('/api/bank-accounts', async (req, res) => {
     const { usuario, mes, ano, contas } = req.body;
-    
     if (!usuario || mes === undefined || !ano || !Array.isArray(contas)) {
         return res.status(400).json({ error: 'Dados inválidos' });
     }
-    
-    const allBankAccounts = loadBankAccounts();
-    const key = generateKey(usuario, mes, ano);
-    allBankAccounts[key] = contas;
-    
-    saveBankAccounts(allBankAccounts);
-    res.json({ success: true });
+    try {
+        await saveBankAccounts(usuario, mes, ano, contas);
+        res.json({ success: true });
+    } catch (error) {
+        res.status(500).json({ error: 'Erro ao salvar contas bancárias.' });
+    }
 });
 
 // Rotas para cofrinhos
-app.get('/api/cofrinhos', (req, res) => {
+app.get('/api/cofrinhos', async (req, res) => {
     const { usuario, mes, ano } = req.query;
-    
     if (!usuario || mes === undefined || !ano) {
         return res.status(400).json({ error: 'Parâmetros obrigatórios: usuario, mes, ano' });
     }
-    
-    const allCofrinhos = loadCofrinhos();
-    const key = generateKey(usuario, mes, ano);
-    const userCofrinhos = allCofrinhos[key] || [];
-    
-    res.json(userCofrinhos);
+    try {
+        const cofrinhos = await getCofrinhos(usuario, mes, ano);
+        res.json(cofrinhos);
+    } catch (error) {
+        res.status(500).json({ error: 'Erro ao buscar cofrinhos.' });
+    }
 });
 
-app.post('/api/cofrinhos/add', (req, res) => {
+app.post('/api/cofrinhos/add', async (req, res) => {
     const { nome, valor, descricao, usuario, mes, ano } = req.body;
-    
     if (!nome || !valor || !usuario || mes === undefined || !ano) {
-        return res.status(400).json({
-            success: false,
-            message: 'Dados obrigatórios: nome, valor, usuario, mes, ano'
-        });
+        return res.status(400).json({ success: false, message: 'Dados obrigatórios: nome, valor, usuario, mes, ano' });
     }
-    
-    const allCofrinhos = loadCofrinhos();
-    const key = generateKey(usuario, mes, ano);
-    
-    if (!allCofrinhos[key]) {
-        allCofrinhos[key] = [];
+    try {
+        const novoCofrinho = await addCofrinho({ nome, valor, descricao, usuario, mes, ano });
+        res.json({ success: true, message: 'Cofrinho adicionado com sucesso.', cofrinho: novoCofrinho });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Erro ao adicionar cofrinho.' });
     }
-    
-    const novoCofrinho = {
-        id: Date.now(),
-        nome: nome,
-        valor: valor,
-        descricao: descricao || '',
-        dataCreacao: new Date().toISOString()
-    };
-    
-    allCofrinhos[key].push(novoCofrinho);
-    saveCofrinhos(allCofrinhos);
-    
-    res.json({
-        success: true,
-        message: 'Cofrinho adicionado com sucesso.',
-        cofrinho: novoCofrinho
-    });
 });
 
-app.post('/api/cofrinhos/:id/use', (req, res) => {
+app.post('/api/cofrinhos/:id/use', async (req, res) => {
     const cofrinhoId = parseInt(req.params.id);
     const { tipo, contaBancariaId, usuario, mes, ano } = req.body;
-    
     if (!tipo || !contaBancariaId || !usuario || mes === undefined || !ano) {
         return res.status(400).json({
             success: false,
             message: 'Dados obrigatórios: tipo, contaBancariaId, usuario, mes, ano'
         });
     }
-    
     try {
-        // Carregar cofrinhos
-        const allCofrinhos = loadCofrinhos();
-        const key = generateKey(usuario, mes, ano);
-        const userCofrinhos = allCofrinhos[key] || [];
-        
-        // Encontrar cofrinho
-        const cofrinhoIndex = userCofrinhos.findIndex(c => c.id === cofrinhoId);
-        if (cofrinhoIndex === -1) {
-            return res.status(404).json({
-                success: false,
-                message: 'Cofrinho não encontrado.'
-            });
+        // Buscar cofrinho
+        const { rows: cofrinhos } = await pool.query('SELECT * FROM cofrinhos WHERE id = $1 AND usuario = $2 AND mes = $3 AND ano = $4', [cofrinhoId, usuario, mes, ano]);
+        if (cofrinhos.length === 0) {
+            return res.status(404).json({ success: false, message: 'Cofrinho não encontrado.' });
         }
-        
-        const cofrinho = userCofrinhos[cofrinhoIndex];
-        
-        // Carregar contas bancárias
-        const allBankAccounts = loadBankAccounts();
-        const userBankAccounts = allBankAccounts[key] || [];
-        
-        // Encontrar conta bancária
-        const accountIndex = userBankAccounts.findIndex(acc => acc.id === parseInt(contaBancariaId));
-        if (accountIndex === -1) {
-            return res.status(404).json({
-                success: false,
-                message: 'Conta bancária não encontrada.'
-            });
+        const cofrinho = cofrinhos[0];
+
+        // Buscar conta bancária
+        const { rows: contas } = await pool.query('SELECT * FROM bank_accounts WHERE id = $1 AND usuario = $2 AND mes = $3 AND ano = $4', [contaBancariaId, usuario, mes, ano]);
+        if (contas.length === 0) {
+            return res.status(404).json({ success: false, message: 'Conta bancária não encontrada.' });
         }
-        
+        const conta = contas[0];
+
         // Atualizar saldo da conta
+        let novoSaldo = parseFloat(conta.balance);
         if (tipo === 'receita') {
-            userBankAccounts[accountIndex].balance += cofrinho.valor;
+            novoSaldo += parseFloat(cofrinho.valor);
         } else {
-            userBankAccounts[accountIndex].balance -= cofrinho.valor;
+            novoSaldo -= parseFloat(cofrinho.valor);
         }
-        
-        // Carregar transações
-        const allTransactions = loadTransactions();
-        const userTransactions = allTransactions[key] || [];
-        
+        await pool.query('UPDATE bank_accounts SET balance = $1 WHERE id = $2', [novoSaldo, contaBancariaId]);
+
         // Criar transação
-        const novaTransacao = {
-            id: Date.now(),
-            tipo: tipo,
-            descricao: `${tipo === 'receita' ? 'Receita' : 'Despesa'} do cofrinho: ${cofrinho.nome}`,
-            valor: cofrinho.valor,
-            categoria: tipo === 'despesa' ? 'cartao' : 'receita',
-            contaBancaria: parseInt(contaBancariaId),
-            data: new Date(),
-            mes: parseInt(mes),
-            ano: parseInt(ano),
-            usuario: usuario
-        };
-        
-        userTransactions.push(novaTransacao);
-        
+        await pool.query(
+            'INSERT INTO transactions (usuario, mes, ano, tipo, descricao, valor, categoria, conta_bancaria, data) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)',
+            [usuario, mes, ano, tipo, `${tipo === 'receita' ? 'Receita' : 'Despesa'} do cofrinho: ${cofrinho.nome}`, cofrinho.valor, tipo === 'despesa' ? 'cartao' : 'receita', contaBancariaId, new Date()]
+        );
+
         // Remover cofrinho
-        userCofrinhos.splice(cofrinhoIndex, 1);
-        
-        // Salvar tudo
-        allCofrinhos[key] = userCofrinhos;
-        allBankAccounts[key] = userBankAccounts;
-        allTransactions[key] = userTransactions;
-        
-        saveCofrinhos(allCofrinhos);
-        saveBankAccounts(allBankAccounts);
-        saveTransactions(allTransactions);
-        
+        await pool.query('DELETE FROM cofrinhos WHERE id = $1', [cofrinhoId]);
+
         res.json({
             success: true,
             message: `Cofrinho usado como ${tipo} com sucesso.`
         });
-        
     } catch (error) {
         console.error('Erro ao usar cofrinho:', error);
         res.status(500).json({
@@ -346,37 +235,14 @@ app.post('/api/cofrinhos/:id/use', (req, res) => {
     }
 });
 
-app.delete('/api/cofrinhos/:id', (req, res) => {
+app.delete('/api/cofrinhos/:id', async (req, res) => {
     const cofrinhoId = parseInt(req.params.id);
-    const { usuario, mes, ano } = req.body;
-    
-    if (!usuario || mes === undefined || !ano) {
-        return res.status(400).json({
-            success: false,
-            message: 'Dados obrigatórios: usuario, mes, ano'
-        });
+    try {
+        await deleteCofrinho(cofrinhoId);
+        res.json({ success: true, message: 'Cofrinho excluído com sucesso.' });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Erro ao excluir cofrinho.' });
     }
-    
-    const allCofrinhos = loadCofrinhos();
-    const key = generateKey(usuario, mes, ano);
-    const userCofrinhos = allCofrinhos[key] || [];
-    
-    const cofrinhoIndex = userCofrinhos.findIndex(c => c.id === cofrinhoId);
-    if (cofrinhoIndex === -1) {
-        return res.status(404).json({
-            success: false,
-            message: 'Cofrinho não encontrado.'
-        });
-    }
-    
-    userCofrinhos.splice(cofrinhoIndex, 1);
-    allCofrinhos[key] = userCofrinhos;
-    saveCofrinhos(allCofrinhos);
-    
-    res.json({
-        success: true,
-        message: 'Cofrinho excluído com sucesso.'
-    });
 });
 
 // Rota principal
@@ -385,10 +251,16 @@ app.get('/', (req, res) => {
 });
 
 // Iniciar servidor
-app.listen(PORT, '0.0.0.0', () => {
+app.listen(PORT, '0.0.0.0', async () => {
     console.log(`🚀 Servidor rodando em http://localhost:${PORT}`);
     console.log(`📊 Controle Financeiro Pro com Sistema de Login`);
     console.log(`👤 Usuários padrão: erick/123, admin/admin`);
-    console.log(`💾 Dados salvos em: ${dataDir}`);
+    // Testar conexão com o banco
+    try {
+        const result = await pool.query('SELECT * FROM users LIMIT 1');
+        console.log('✅ Conexão com o banco bem-sucedida! users:', result.rows);
+    } catch (err) {
+        console.error('❌ Erro ao conectar no banco ou buscar users:', err);
+    }
 });
 

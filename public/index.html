@@ -35,6 +35,124 @@
             pointer-events: none;
         }
 
+        /* Login Screen Styles */
+        .login-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            position: relative;
+            z-index: 1;
+        }
+
+        .login-box {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            width: 100%;
+            max-width: 500px;
+            text-align: center;
+            animation: slideInDown 0.6s ease-out;
+        }
+
+        .login-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .login-subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1rem;
+        }
+
+        .login-form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .login-input {
+            padding: 15px;
+            border: 2px solid #e8ecf0;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.9);
+            font-weight: 500;
+        }
+
+        .login-input:focus {
+            outline: none;
+            border-color: #4a90e2;
+            box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .login-btn {
+            padding: 15px;
+            background: linear-gradient(135deg, #4a90e2 0%, #2a5298 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 15px rgba(74, 144, 226, 0.3);
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(74, 144, 226, 0.4);
+        }
+
+        .login-btn:active {
+            transform: translateY(-1px);
+        }
+
+        .user-info {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+        }
+
+        .logout-btn {
+            background: rgba(231, 76, 60, 0.8);
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.3s ease;
+        }
+
+        .logout-btn:hover {
+            background: rgba(231, 76, 60, 1);
+        }
+
+        /* Main App Styles */
         .container {
             max-width: 100%;
             margin: 0 auto;
@@ -689,6 +807,10 @@
             border-radius: 3px;
         }
 
+        .hidden {
+            display: none !important;
+        }
+
         @keyframes fadeInDown {
             from {
                 opacity: 0;
@@ -783,163 +905,211 @@
                 flex-direction: column;
                 gap: 10px;
             }
+
+            .login-box {
+                margin: 20px;
+                padding: 30px;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="current-month-display" id="currentMonthDisplay">
-            <div>
-                <i class="fas fa-calendar-alt"></i> <span id="monthName">Agosto 2025</span>
-            </div>
-        </div>
-
-        <div class="month-selector">
-            <button class="month-btn" data-month="0">Janeiro</button>
-            <button class="month-btn" data-month="1">Fevereiro</button>
-            <button class="month-btn" data-month="2">Março</button>
-            <button class="month-btn" data-month="3">Abril</button>
-            <button class="month-btn" data-month="4">Maio</button>
-            <button class="month-btn" data-month="5">Junho</button>
-            <button class="month-btn" data-month="6">Julho</button>
-            <button class="month-btn" data-month="7">Agosto</button>
-            <button class="month-btn" data-month="8">Setembro</button>
-            <button class="month-btn" data-month="9">Outubro</button>
-            <button class="month-btn" data-month="10">Novembro</button>
-            <button class="month-btn" data-month="11">Dezembro</button>
-        </div>
-
-        <div class="kpi-section month-transition">
-            <div class="kpi-card">
-                <div class="kpi-icon receita"><i class="fas fa-arrow-up"></i></div>
-                <div class="kpi-title">Receita Total</div>
-                <div class="kpi-value receita" id="totalReceita">R$ 0,00</div>
-            </div>
-            <div class="kpi-card">
-                <div class="kpi-icon gasto"><i class="fas fa-arrow-down"></i></div>
-                <div class="kpi-title">Gastos Total</div>
-                <div class="kpi-value gasto" id="totalGastos">R$ 0,00</div>
-            </div>
-            <div class="kpi-card">
-                <div class="kpi-icon saldo"><i class="fas fa-wallet"></i></div>
-                <div class="kpi-title">Saldo</div>
-                <div class="kpi-value saldo" id="saldo">R$ 0,00</div>
-            </div>
-        </div>
-
-        <div class="main-content month-transition">
-            <div class="left-panel">
-                <div class="panel-title"><i class="fas fa-plus-circle"></i> Adicionar Transação</div>
+    <!-- Login Screen -->
+    <div id="loginScreen" class="login-container"> 
+        <div class="login-box">
+            <i class="fas fa-chart-line" style="font-size: 40px; color: #2c3e50; margin-bottom: 20px;"></i>
+            <h1 class="login-title">
                 
-                <div class="form-group">
-                    <label for="tipo"><i class="fas fa-exchange-alt"></i> Tipo</label>
-                    <select id="tipo">
-                        <option value="receita">💰 Receita</option>
-                        <option value="despesa">💸 Despesa</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label for="descricao"><i class="fas fa-edit"></i> Descrição</label>
-                    <input type="text" id="descricao" placeholder="Ex: Salário, Supermercado, Pagamento MEI...">
-                </div>
-
-                <div class="form-group">
-                    <label for="valor"><i class="fas fa-dollar-sign"></i> Valor</label>
-                    <input type="number" id="valor" step="0.01" placeholder="0,00">
-                </div>
-
-                <div class="form-group">
-                    <label for="contaBancaria"><i class="fas fa-university"></i> Conta Bancária</label>
-                    <select id="contaBancaria">
-                        <option value="">Selecione uma conta...</option>
-                    </select>
-                </div>
-
-                <div class="form-group" id="categoriaGroup">
-                    <label for="categoria"><i class="fas fa-tags"></i> Categoria</label>
-                    <select id="categoria">
-                        <optgroup label="Pessoal">
-                            <option value="cartao">💳 Cartão</option>
-                            <option value="comida">🍽️ Comida</option>
-                            <option value="transporte">🚗 Transporte</option>
-                            <option value="aluguel">🏠 Aluguel</option>
-                            <option value="agua">💧 Água</option>
-                            <option value="energia">⚡ Energia</option>
-                            <option value="condominio">🏢 Condomínio</option>
-                        </optgroup>
-                        <optgroup label="Profissional">
-                            <option value="mei">📋 Pagamento MEI</option>
-                            <option value="despesas_trabalho">💼 Despesas de Trabalho</option>
-                            <option value="equipamentos">🖥️ Equipamentos</option>
-                            <option value="software">💻 Software/Licenças</option>
-                            <option value="marketing">📢 Marketing</option>
-                            <option value="impostos">📊 Impostos</option>
-                        </optgroup>
-                    </select>
-                </div>
-
-                <div class="form-buttons">
-                    <button class="btn btn-success" onclick="adicionarTransacao()">
-                        <i class="fas fa-plus"></i> Adicionar
-                    </button>
-                    <button class="btn btn-primary" onclick="limparFormulario()">
-                        <i class="fas fa-eraser"></i> Limpar
-                    </button>
-                </div>
-            </div>
-
-            <div class="middle-panel">
-                <div class="panel-title"><i class="fas fa-list"></i> Transações do Mês</div>
-                
-                <div class="transactions-section" id="transacoes">
-                    <p style="text-align: center; color: #666; margin-top: 50px;">
-                        <i class="fas fa-inbox"></i><br>
-                        Nenhuma transação encontrada
-                    </p>
-                </div>
-
-                <div class="categories-section">
-                    <h3 class="categories-title"><i class="fas fa-chart-pie"></i> Gastos por Categoria</h3>
-                    <div id="categorias"></div>
-                </div>
-            </div>
-
-            <div class="right-panel">
-                <div class="panel-title"><i class="fas fa-university"></i> Contas Bancárias</div>
-                
-                <div class="add-bank-form hidden" id="addBankForm">
-                    <div class="form-group">
-                        <label for="bankName">Nome da Conta</label>
-                        <input type="text" id="bankName" placeholder="Ex: Nubank, Itaú, Caixa...">
-                    </div>
-                    <div class="form-group">
-                        <label for="bankBalance">Saldo Inicial</label>
-                        <input type="number" id="bankBalance" step="0.01" placeholder="0,00">
-                    </div>
-                    <div style="display: flex; gap: 10px;">
-                        <button class="btn btn-success btn-small" onclick="salvarContaBancaria()">
-                            <i class="fas fa-save"></i> Salvar
-                        </button>
-                        <button class="btn btn-danger btn-small" onclick="cancelarAdicionarConta()">
-                            <i class="fas fa-times"></i> Cancelar
-                        </button>
-                    </div>
-                </div>
-
-                <button class="btn cofrinho-btn" style="margin-bottom: 10px;" onclick="abrirModalCofrinho()">
-                    <i class="fas fa-piggy-bank"></i> Cofrinho
+                Controle Financeiro
+            </h1>
+            <p class="login-subtitle">Faça login para acessar suas finanças</p>
+            
+            <form class="login-form" onsubmit="login(event)">
+                <input 
+                    type="text" 
+                    id="username" 
+                    class="login-input" 
+                    placeholder="Usuário" 
+                    required
+                    autocomplete="username"
+                >
+                <input 
+                    type="password" 
+                    id="password" 
+                    class="login-input" 
+                    placeholder="Senha" 
+                    required
+                    autocomplete="current-password"
+                >
+                <button type="submit" class="login-btn">
+                    <i class="fas fa-sign-in-alt"></i> Entrar
                 </button>
+                <span style="font-size: 12px; color: #aaa;">Made by ZenkoGroup</span>
+            </form>
+        </div>
+    </div>
 
-                <button class="btn btn-primary" onclick="mostrarFormularioAdicionarConta()" id="btnAdicionarConta">
-                    <i class="fas fa-plus"></i> Adicionar Conta
-                </button>
+    <!-- Main App -->
+    <div id="mainApp" class="hidden">
+        <div class="user-info">
+            <i class="fas fa-user"></i>
+            <span id="currentUser">Usuário</span>
+        </div>
 
-                <div class="bank-accounts-section" id="bankAccounts">
-                    <p style="text-align: center; color: #666; margin-top: 30px;">
-                        <i class="fas fa-university"></i><br>
-                        Nenhuma conta bancária cadastrada
-                    </p>
+        <div class="container">
+            <div class="current-month-display" id="currentMonthDisplay">
+                <div>
+                    <i class="fas fa-calendar-alt"></i> <span id="monthName">Agosto 2025</span>
+                </div>
+            </div>
+
+            <div class="month-selector">
+                <button class="month-btn" data-month="0">Janeiro</button>
+                <button class="month-btn" data-month="1">Fevereiro</button>
+                <button class="month-btn" data-month="2">Março</button>
+                <button class="month-btn" data-month="3">Abril</button>
+                <button class="month-btn" data-month="4">Maio</button>
+                <button class="month-btn" data-month="5">Junho</button>
+                <button class="month-btn" data-month="6">Julho</button>
+                <button class="month-btn" data-month="7">Agosto</button>
+                <button class="month-btn" data-month="8">Setembro</button>
+                <button class="month-btn" data-month="9">Outubro</button>
+                <button class="month-btn" data-month="10">Novembro</button>
+                <button class="month-btn" data-month="11">Dezembro</button>
+            </div>
+
+            <div class="kpi-section month-transition">
+                <div class="kpi-card">
+                    <div class="kpi-icon receita"><i class="fas fa-arrow-up"></i></div>
+                    <div class="kpi-title">Receita Total</div>
+                    <div class="kpi-value receita" id="totalReceita">R$ 0,00</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-icon gasto"><i class="fas fa-arrow-down"></i></div>
+                    <div class="kpi-title">Gastos Total</div>
+                    <div class="kpi-value gasto" id="totalGastos">R$ 0,00</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-icon saldo"><i class="fas fa-wallet"></i></div>
+                    <div class="kpi-title">Saldo</div>
+                    <div class="kpi-value saldo" id="saldo">R$ 0,00</div>
+                </div>
+            </div>
+
+            <div class="main-content month-transition">
+                <div class="left-panel">
+                    <div class="panel-title"><i class="fas fa-plus-circle"></i> Adicionar Transação</div>
+                    
+                    <div class="form-group">
+                        <label for="tipo"><i class="fas fa-exchange-alt"></i> Tipo</label>
+                        <select id="tipo">
+                            <option value="receita">💰 Receita</option>
+                            <option value="despesa">💸 Despesa</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="descricao"><i class="fas fa-edit"></i> Descrição</label>
+                        <input type="text" id="descricao" placeholder="Ex: Salário, Supermercado, Pagamento MEI...">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="valor"><i class="fas fa-dollar-sign"></i> Valor</label>
+                        <input type="number" id="valor" step="0.01" placeholder="0,00">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="contaBancaria"><i class="fas fa-university"></i> Conta Bancária</label>
+                        <select id="contaBancaria">
+                            <option value="">Selecione uma conta...</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group" id="categoriaGroup">
+                        <label for="categoria"><i class="fas fa-tags"></i> Categoria</label>
+                        <select id="categoria">
+                            <optgroup label="Pessoal">
+                                <option value="cartao">💳 Cartão</option>
+                                <option value="comida">🍽️ Comida</option>
+                                <option value="transporte">🚗 Transporte</option>
+                                <option value="aluguel">🏠 Aluguel</option>
+                                <option value="agua">💧 Água</option>
+                                <option value="energia">⚡ Energia</option>
+                                <option value="condominio">🏢 Condomínio</option>
+                            </optgroup>
+                            <optgroup label="Profissional">
+                                <option value="mei">📋 Pagamento MEI</option>
+                                <option value="despesas_trabalho">💼 Despesas de Trabalho</option>
+                                <option value="equipamentos">🖥️ Equipamentos</option>
+                                <option value="software">💻 Software/Licenças</option>
+                                <option value="marketing">📢 Marketing</option>
+                                <option value="impostos">📊 Impostos</option>
+                            </optgroup>
+                        </select>
+                    </div>
+
+                    <div class="form-buttons">
+                        <button class="btn btn-success" onclick="adicionarTransacao()">
+                            <i class="fas fa-plus"></i> Adicionar
+                        </button>
+                        <button class="btn btn-primary" onclick="limparFormulario()">
+                            <i class="fas fa-eraser"></i> Limpar
+                        </button>
+                    </div>
+                </div>
+
+                <div class="middle-panel">
+                    <div class="panel-title"><i class="fas fa-list"></i> Transações do Mês</div>
+                    
+                    <div class="transactions-section" id="transacoes">
+                        <p style="text-align: center; color: #666; margin-top: 50px;">
+                            <i class="fas fa-inbox"></i><br>
+                            Nenhuma transação encontrada
+                        </p>
+                    </div>
+
+                    <div class="categories-section">
+                        <h3 class="categories-title"><i class="fas fa-chart-pie"></i> Gastos por Categoria</h3>
+                        <div id="categorias"></div>
+                    </div>
+                </div>
+
+                <div class="right-panel">
+                    <div class="panel-title"><i class="fas fa-university"></i> Contas Bancárias</div>
+                    
+                    <div class="add-bank-form hidden" id="addBankForm">
+                        <div class="form-group">
+                            <label for="bankName">Nome da Conta</label>
+                            <input type="text" id="bankName" placeholder="Ex: Nubank, Itaú, Caixa...">
+                        </div>
+                        <div class="form-group">
+                            <label for="bankBalance">Saldo Inicial</label>
+                            <input type="number" id="bankBalance" step="0.01" placeholder="0,00">
+                        </div>
+                        <div style="display: flex; gap: 10px;">
+                            <button class="btn btn-success btn-small" onclick="salvarContaBancaria()">
+                                <i class="fas fa-save"></i> Salvar
+                            </button>
+                            <button class="btn btn-danger btn-small" onclick="cancelarAdicionarConta()">
+                                <i class="fas fa-times"></i> Cancelar
+                            </button>
+                        </div>
+                    </div>
+
+                    <button class="btn cofrinho-btn" style="margin-bottom: 10px;" onclick="abrirModalCofrinho()">
+                        <i class="fas fa-piggy-bank"></i> Cofrinho
+                    </button>
+
+                    <button class="btn btn-primary" onclick="mostrarFormularioAdicionarConta()" id="btnAdicionarConta">
+                        <i class="fas fa-plus"></i> Adicionar Conta
+                    </button>
+
+                    <div class="bank-accounts-section" id="bankAccounts">
+                        <p style="text-align: center; color: #666; margin-top: 30px;">
+                            <i class="fas fa-university"></i><br>
+                            Nenhuma conta bancária cadastrada
+                        </p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -990,26 +1160,136 @@
     </div>
 
     <script>
-        let currentMonth = new Date().getMonth();
-        let currentYear = new Date().getFullYear();
+        // Variáveis globais
+        let currentUser = null;
         let transactions = {};
         let bankAccounts = [];
         let cofrinhos = [];
         let editingBankId = null;
+        let currentMonth = new Date().getMonth();
+        let currentYear = new Date().getFullYear();
 
         const monthNames = [
             'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
             'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
         ];
 
-        // Inicializar aplicação
-        document.addEventListener('DOMContentLoaded', function() {
+        // Funções de autenticação
+        async function login(event) {
+            event.preventDefault();
+            
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+
+            console.log(username, password);
+
+            if (!username || !password) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Erro!',
+                    text: 'Por favor, preencha todos os campos.',
+                    confirmButtonColor: '#4a90e2'
+                });
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const result = await response.json();
+
+                if (response.ok && result.success) {
+                    currentUser = username;
+                    document.getElementById('currentUser').textContent = username;
+                    document.getElementById('loginScreen').classList.add('hidden');
+                    document.getElementById('mainApp').classList.remove('hidden');
+                    
+                    // Carregar dados do usuário
+                    await loadUserData();
+                    
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Bem-vindo!',
+                        text: `Olá, ${username}!`,
+                        timer: 1500,
+                        showConfirmButton: false
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Erro de Login!',
+                        text: result.message || 'Usuário ou senha incorretos.',
+                        confirmButtonColor: '#4a90e2'
+                    });
+                }
+            } catch (error) {
+                console.error('Erro no login:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Erro!',
+                    text: 'Erro de conexão. Tente novamente.',
+                    confirmButtonColor: '#4a90e2'
+                });
+            }
+        }
+
+        function logout() {
+            Swal.fire({
+                title: 'Tem certeza?',
+                text: 'Você será desconectado do sistema.',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#4a90e2',
+                cancelButtonColor: '#e74c3c',
+                confirmButtonText: 'Sim, sair',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    currentUser = null;
+                    transactions = {};
+                    bankAccounts = [];
+                    cofrinhos = [];
+                    
+                    document.getElementById('mainApp').classList.add('hidden');
+                    document.getElementById('loginScreen').classList.remove('hidden');
+                    document.getElementById('username').value = '';
+                    document.getElementById('password').value = '';
+                    
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Logout realizado!',
+                        text: 'Até logo!',
+                        timer: 1500,
+                        showConfirmButton: false
+                    });
+                }
+            });
+        }
+
+        // Carregar dados do usuário
+        async function loadUserData() {
             setActiveMonth(currentMonth);
             updateMonthDisplay();
-            loadData();
-            loadBankAccounts();
-            loadCofrinhos();
+            await loadData();
+            await loadBankAccounts();
+            await loadCofrinhos();
             
+            // Inicializar animações
+            setTimeout(() => {
+                document.querySelectorAll('.month-transition').forEach(el => {
+                    el.classList.add('active');
+                });
+            }, 100);
+        }
+
+        // Inicializar aplicação
+        document.addEventListener('DOMContentLoaded', function() {
             // Event listener para mudança de tipo
             document.getElementById('tipo').addEventListener('change', function() {
                 const categoriaGroup = document.getElementById('categoriaGroup');
@@ -1037,6 +1317,9 @@
                     fecharModalCofrinho();
                 }
             });
+
+            // Focar no campo de usuário
+            document.getElementById('username').focus();
         });
 
         function changeMonth(month) {
@@ -1113,26 +1396,48 @@
                 return;
             }
 
-            const novoCofrinho = {
-                id: Date.now(),
-                nome: nome,
-                valor: valor,
-                descricao: descricao || '',
-                dataCreacao: new Date().toISOString()
-            };
+            try {
+                const response = await fetch('/api/cofrinhos/add', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        nome: nome,
+                        valor: valor,
+                        descricao: descricao,
+                        usuario: currentUser,
+                        mes: currentMonth,
+                        ano: currentYear
+                    })
+                });
 
-            cofrinhos.push(novoCofrinho);
-            await saveCofrinhos();
-            updateCofrinhoDisplay();
-            limparFormularioCofrinho();
+                const result = await response.json();
 
-            Swal.fire({
-                icon: 'success',
-                title: 'Sucesso!',
-                text: 'Cofrinho adicionado com sucesso!',
-                timer: 1500,
-                showConfirmButton: false
-            });
+                if (response.ok && result.success) {
+                    await loadCofrinhos();
+                    updateCofrinhoDisplay();
+                    limparFormularioCofrinho();
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Sucesso!',
+                        text: 'Cofrinho adicionado com sucesso!',
+                        timer: 1500,
+                        showConfirmButton: false
+                    });
+                } else {
+                    throw new Error(result.message || 'Erro ao adicionar cofrinho');
+                }
+            } catch (error) {
+                console.error('Erro ao adicionar cofrinho:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Erro!',
+                    text: 'Erro ao adicionar cofrinho. Tente novamente.',
+                    confirmButtonColor: '#4a90e2'
+                });
+            }
         }
 
         async function usarCofrinho(id, tipo) {
@@ -1157,56 +1462,54 @@
             });
 
             if (contaBancariaId) {
-                // Atualizar saldo da conta bancária
-                const account = bankAccounts.find(acc => acc.id === parseInt(contaBancariaId));
-                if (account) {
-                    if (tipo === 'receita') {
-                        account.balance += cofrinho.valor;
+                try {
+                    const response = await fetch(`/api/cofrinhos/${id}/use`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            tipo: tipo,
+                            contaBancariaId: contaBancariaId,
+                            usuario: currentUser,
+                            mes: currentMonth,
+                            ano: currentYear
+                        })
+                    });
+
+                    const result = await response.json();
+
+                    if (response.ok && result.success) {
+                        // Recarregar dados
+                        await loadData();
+                        await loadBankAccounts();
+                        await loadCofrinhos();
+
+                        // Atualizar displays
+                        updateDisplay();
+                        updateBankAccountsDisplay();
+                        updateBankAccountsSelect();
+                        updateCofrinhoDisplay();
+
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Sucesso!',
+                            text: `Valor do cofrinho usado como ${tipo}!`,
+                            timer: 1500,
+                            showConfirmButton: false
+                        });
                     } else {
-                        account.balance -= cofrinho.valor;
+                        throw new Error(result.message || 'Erro ao usar cofrinho');
                     }
+                } catch (error) {
+                    console.error('Erro ao usar cofrinho:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Erro!',
+                        text: 'Erro ao usar cofrinho. Tente novamente.',
+                        confirmButtonColor: '#4a90e2'
+                    });
                 }
-
-                // Criar transação
-                const transacao = {
-                    id: Date.now(),
-                    tipo: tipo,
-                    descricao: `${tipo === 'receita' ? 'Receita' : 'Despesa'} do cofrinho: ${cofrinho.nome}`,
-                    valor: cofrinho.valor,
-                    categoria: tipo === 'despesa' ? 'cartao' : 'receita',
-                    contaBancaria: parseInt(contaBancariaId),
-                    data: new Date(),
-                    mes: currentMonth,
-                    ano: currentYear
-                };
-
-                // Salvar localmente
-                if (!transactions[currentMonth]) {
-                    transactions[currentMonth] = [];
-                }
-                transactions[currentMonth].push(transacao);
-
-                // Remover cofrinho
-                cofrinhos = cofrinhos.filter(c => c.id !== id);
-
-                // Salvar no servidor
-                await saveData();
-                await saveBankAccounts();
-                await saveCofrinhos();
-
-                // Atualizar displays
-                updateDisplay();
-                updateBankAccountsDisplay();
-                updateBankAccountsSelect();
-                updateCofrinhoDisplay();
-
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Sucesso!',
-                    text: `Valor do cofrinho usado como ${tipo}!`,
-                    timer: 1500,
-                    showConfirmButton: false
-                });
             }
         }
 
@@ -1231,17 +1534,44 @@
             });
 
             if (result.isConfirmed) {
-                cofrinhos = cofrinhos.filter(c => c.id !== id);
-                await saveCofrinhos();
-                updateCofrinhoDisplay();
+                try {
+                    const response = await fetch(`/api/cofrinhos/${id}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            usuario: currentUser,
+                            mes: currentMonth,
+                            ano: currentYear
+                        })
+                    });
 
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Excluído!',
-                    text: 'Cofrinho excluído com sucesso.',
-                    timer: 1500,
-                    showConfirmButton: false
-                });
+                    const result = await response.json();
+
+                    if (response.ok && result.success) {
+                        await loadCofrinhos();
+                        updateCofrinhoDisplay();
+
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Excluído!',
+                            text: 'Cofrinho excluído com sucesso.',
+                            timer: 1500,
+                            showConfirmButton: false
+                        });
+                    } else {
+                        throw new Error(result.message || 'Erro ao excluir cofrinho');
+                    }
+                } catch (error) {
+                    console.error('Erro ao excluir cofrinho:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Erro!',
+                        text: 'Erro ao excluir cofrinho. Tente novamente.',
+                        confirmButtonColor: '#4a90e2'
+                    });
+                }
             }
         }
 
@@ -1281,8 +1611,10 @@
         }
 
         async function loadCofrinhos() {
+            if (!currentUser) return;
+            
             try {
-                const response = await fetch('/api/cofrinhos');
+                const response = await fetch(`/api/cofrinhos?usuario=${currentUser}&mes=${currentMonth}&ano=${currentYear}`);
                 if (response.ok) {
                     cofrinhos = await response.json();
                 } else {
@@ -1294,32 +1626,15 @@
             }
         }
 
-        async function saveCofrinhos() {
-            try {
-                await fetch('/api/cofrinhos', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(cofrinhos)
-                });
-            } catch (error) {
-                console.error('Erro ao salvar cofrinhos:', error);
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Erro!',
-                    text: 'Erro ao salvar os cofrinhos. Tente novamente.',
-                    confirmButtonColor: '#4a90e2'
-                });
-            }
-        }
-
         // Resto das funções existentes...
         async function loadData() {
+            if (!currentUser) return;
+            
             try {
-                const response = await fetch('/api/transactions');
+                const response = await fetch(`/api/transactions?usuario=${currentUser}&mes=${currentMonth}&ano=${currentYear}`);
                 if (response.ok) {
-                    transactions = await response.json();
+                    const data = await response.json();
+                    transactions = { [currentMonth]: data };
                 } else {
                     transactions = {};
                 }
@@ -1331,13 +1646,21 @@
         }
 
         async function saveData() {
+            if (!currentUser) return;
+            
             try {
+                const monthTransactions = transactions[currentMonth] || [];
                 await fetch('/api/transactions', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify(transactions)
+                    body: JSON.stringify({
+                        usuario: currentUser,
+                        mes: currentMonth,
+                        ano: currentYear,
+                        transacoes: monthTransactions
+                    })
                 });
             } catch (error) {
                 console.error('Erro ao salvar dados:', error);
@@ -1351,8 +1674,10 @@
         }
 
         async function loadBankAccounts() {
+            if (!currentUser) return;
+            
             try {
-                const response = await fetch('/api/bank-accounts');
+                const response = await fetch(`/api/bank-accounts?usuario=${currentUser}&mes=${currentMonth}&ano=${currentYear}`);
                 if (response.ok) {
                     bankAccounts = await response.json();
                 } else {
@@ -1367,13 +1692,20 @@
         }
 
         async function saveBankAccounts() {
+            if (!currentUser) return;
+            
             try {
                 await fetch('/api/bank-accounts', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify(bankAccounts)
+                    body: JSON.stringify({
+                        usuario: currentUser,
+                        mes: currentMonth,
+                        ano: currentYear,
+                        contas: bankAccounts
+                    })
                 });
             } catch (error) {
                 console.error('Erro ao salvar contas bancárias:', error);
@@ -1436,7 +1768,8 @@
                 const newAccount = {
                     id: Date.now(),
                     name: name,
-                    balance: balance
+                    balance: balance,
+                    createdAt: new Date().toISOString()
                 };
                 bankAccounts.push(newAccount);
             }
@@ -1449,20 +1782,20 @@
             Swal.fire({
                 icon: 'success',
                 title: 'Sucesso!',
-                text: 'Conta bancária salva com sucesso!',
+                text: editingBankId !== null ? 'Conta atualizada com sucesso!' : 'Conta adicionada com sucesso!',
                 timer: 1500,
                 showConfirmButton: false
             });
         }
 
-        function editarContaBancaria(id) {
+        async function editarContaBancaria(id) {
             const account = bankAccounts.find(acc => acc.id === id);
-            if (account) {
-                document.getElementById('bankName').value = account.name;
-                document.getElementById('bankBalance').value = account.balance;
-                editingBankId = id;
-                mostrarFormularioAdicionarConta();
-            }
+            if (!account) return;
+
+            editingBankId = id;
+            document.getElementById('bankName').value = account.name;
+            document.getElementById('bankBalance').value = account.balance;
+            mostrarFormularioAdicionarConta();
         }
 
         async function excluirContaBancaria(id) {
@@ -1594,7 +1927,8 @@
                 contaBancaria: parseInt(contaBancariaId),
                 data: new Date(),
                 mes: currentMonth,
-                ano: currentYear
+                ano: currentYear,
+                usuario: currentUser
             };
 
             // Salvar localmente
@@ -1770,13 +2104,6 @@
                 currency: 'BRL'
             }).format(value);
         }
-
-        // Inicializar animações
-        setTimeout(() => {
-            document.querySelectorAll('.month-transition').forEach(el => {
-                el.classList.add('active');
-            });
-        }, 100);
     </script>
 </body>
 </html>
