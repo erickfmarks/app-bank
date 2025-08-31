@@ -1,0 +1,1783 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controle Financeiro Pro</title>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #4a90e2 100%);
+            min-height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(120, 119, 198, 0.2) 0%, transparent 50%);
+            pointer-events: none;
+        }
+
+        .container {
+            max-width: 100%;
+            margin: 0 auto;
+            padding: 15px;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            z-index: 1;
+        }
+
+        .current-month-display {
+            text-align: center;
+            color: white;
+            margin-bottom: 15px;
+            font-size: 1.4rem;
+            font-weight: 600;
+            opacity: 0.95;
+            animation: fadeIn 1s ease-out;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .cofrinho-btn {
+            background: rgba(255, 193, 7, 0.9);
+            color: #333;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 15px rgba(255, 193, 7, 0.3);
+        }
+
+        .cofrinho-btn:hover {
+            background: rgba(255, 193, 7, 1);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 193, 7, 0.4);
+        }
+
+        .month-selector {
+            display: flex;
+            justify-content: center;
+            gap: 6px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        .month-btn {
+            padding: 8px 12px;
+            background: rgba(255,255,255,0.15);
+            color: white;
+            border: 2px solid rgba(255,255,255,0.2);
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            font-weight: 500;
+            font-size: 0.8rem;
+            backdrop-filter: blur(10px);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .month-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .month-btn:hover::before {
+            left: 100%;
+        }
+
+        .month-btn:hover, .month-btn.active {
+            background: rgba(255,255,255,0.25);
+            border-color: rgba(255,255,255,0.4);
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+        }
+
+        .month-btn.active {
+            background: rgba(255,255,255,0.3);
+            border-color: rgba(255,255,255,0.6);
+            box-shadow: 0 0 15px rgba(255,255,255,0.3);
+        }
+
+        .kpi-section {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 15px;
+            animation: fadeInUp 0.8s ease-out 0.2s both;
+        }
+
+        .kpi-card {
+            background: rgba(255,255,255,0.95);
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.2);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .kpi-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #4a90e2, #2a5298);
+        }
+
+        .kpi-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.2);
+        }
+
+        .kpi-icon {
+            font-size: 1.5rem;
+            margin-bottom: 8px;
+            opacity: 0.8;
+        }
+
+        .kpi-title {
+            font-size: 0.8rem;
+            color: #666;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+        }
+
+        .kpi-value {
+            font-size: 1.6rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .kpi-value.receita { 
+            color: #27ae60;
+            text-shadow: 0 2px 4px rgba(39, 174, 96, 0.2);
+        }
+        .kpi-value.gasto { 
+            color: #e74c3c;
+            text-shadow: 0 2px 4px rgba(231, 76, 60, 0.2);
+        }
+        .kpi-value.saldo { 
+            color: #3498db;
+            text-shadow: 0 2px 4px rgba(52, 152, 219, 0.2);
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 2fr 2fr 1fr;
+            gap: 15px;
+            flex: 1;
+            overflow: hidden;
+            animation: fadeInUp 0.8s ease-out 0.4s both;
+        }
+
+        .left-panel, .middle-panel, .right-panel {
+            background: rgba(255,255,255,0.95);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.2);
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+
+        .left-panel:hover, .middle-panel:hover, .right-panel:hover {
+            box-shadow: 0 12px 40px rgba(0,0,0,0.2);
+        }
+
+        .panel-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: #2c3e50;
+            text-align: center;
+            position: relative;
+            padding-bottom: 12px;
+        }
+
+        .panel-title::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 50px;
+            height: 3px;
+            background: linear-gradient(90deg, #4a90e2, #2a5298);
+            border-radius: 2px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+            position: relative;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            color: #2c3e50;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e8ecf0;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            background: rgba(255,255,255,0.9);
+            font-weight: 500;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #4a90e2;
+            box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #4a90e2 0%, #2a5298 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(74, 144, 226, 0.3);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(39, 174, 96, 0.3);
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(243, 156, 18, 0.3);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+        }
+
+        .btn:active {
+            transform: translateY(-1px);
+        }
+
+        .transactions-section {
+            flex: 1;
+            overflow-y: auto;
+            margin-top: 15px;
+            padding-right: 8px;
+        }
+
+        .transactions-section::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .transactions-section::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.1);
+            border-radius: 3px;
+        }
+
+        .transactions-section::-webkit-scrollbar-thumb {
+            background: rgba(74, 144, 226, 0.5);
+            border-radius: 3px;
+        }
+
+        .transaction-item {
+            background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 12px;
+            border-left: 4px solid #4a90e2;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 3px 12px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+            animation: slideInRight 0.5s ease-out;
+        }
+
+        .transaction-item:hover {
+            transform: translateX(3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.12);
+        }
+
+        .transaction-item.receita {
+            border-left-color: #27ae60;
+            background: linear-gradient(135deg, #f0fff4 0%, #ffffff 100%);
+        }
+
+        .transaction-item.despesa {
+            border-left-color: #e74c3c;
+            background: linear-gradient(135deg, #fff5f5 0%, #ffffff 100%);
+        }
+
+        .transaction-info {
+            flex: 1;
+        }
+
+        .transaction-desc {
+            font-weight: 700;
+            color: #2c3e50;
+            font-size: 1rem;
+            margin-bottom: 3px;
+        }
+
+        .transaction-category {
+            font-size: 0.75rem;
+            color: #7f8c8d;
+            text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .transaction-value {
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .transaction-value.receita {
+            color: #27ae60;
+        }
+
+        .transaction-value.despesa {
+            color: #e74c3c;
+        }
+
+        .categories-section {
+            margin-top: 20px;
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .categories-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: #2c3e50;
+        }
+
+        .category-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            margin-bottom: 6px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+            border-radius: 10px;
+            border-left: 3px solid #e74c3c;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+        }
+
+        .category-item:hover {
+            transform: translateX(2px);
+            box-shadow: 0 3px 12px rgba(0,0,0,0.1);
+        }
+
+        .category-name {
+            font-weight: 600;
+            text-transform: capitalize;
+            color: #2c3e50;
+            font-size: 0.9rem;
+        }
+
+        .category-value {
+            font-weight: 700;
+            color: #e74c3c;
+            font-size: 1rem;
+        }
+
+        .form-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .month-transition {
+            opacity: 0;
+            transform: translateY(15px);
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .month-transition.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Contas Bancárias */
+        .bank-accounts-section {
+            flex: 1;
+            overflow-y: auto;
+            margin-top: 15px;
+        }
+
+        .bank-account-item {
+            background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 12px;
+            border-left: 4px solid #3498db;
+            box-shadow: 0 3px 12px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+        }
+
+        .bank-account-item:hover {
+            transform: translateX(3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.12);
+        }
+
+        .bank-account-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .bank-account-name {
+            font-weight: 700;
+            color: #2c3e50;
+            font-size: 1rem;
+        }
+
+        .bank-account-balance {
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: #3498db;
+        }
+
+        .bank-account-actions {
+            display: flex;
+            gap: 5px;
+        }
+
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 0.75rem;
+            border-radius: 8px;
+        }
+
+        .add-bank-form {
+            background: rgba(52, 152, 219, 0.1);
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            border: 2px dashed rgba(52, 152, 219, 0.3);
+        }
+
+        .add-bank-form.hidden {
+            display: none;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            backdrop-filter: blur(5px);
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            margin: auto;
+            padding: 30px;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            position: relative;
+            animation: slideInDown 0.4s ease-out;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e8ecf0;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .close {
+            color: #aaa;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .close:hover {
+            color: #e74c3c;
+            background: rgba(231, 76, 60, 0.1);
+        }
+
+        .cofrinho-item {
+            background: linear-gradient(135deg, #fff3cd 0%, #ffffff 100%);
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 15px;
+            border-left: 4px solid #ffc107;
+            box-shadow: 0 4px 15px rgba(255, 193, 7, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .cofrinho-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 193, 7, 0.3);
+        }
+
+        .cofrinho-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .cofrinho-name {
+            font-weight: 700;
+            color: #2c3e50;
+            font-size: 1.1rem;
+        }
+
+        .cofrinho-value {
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: #f39c12;
+        }
+
+        .cofrinho-description {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+            font-style: italic;
+        }
+
+        .cofrinho-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .cofrinho-list {
+            max-height: 400px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+        }
+
+        .cofrinho-list::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .cofrinho-list::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.1);
+            border-radius: 3px;
+        }
+
+        .cofrinho-list::-webkit-scrollbar-thumb {
+            background: rgba(255, 193, 7, 0.5);
+            border-radius: 3px;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes slideInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px) scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        @media (max-width: 1200px) {
+            .main-content {
+                grid-template-columns: 1fr 1fr;
+            }
+            
+            .right-panel {
+                grid-column: 1 / -1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .kpi-section {
+                grid-template-columns: 1fr;
+            }
+            
+            .month-selector {
+                gap: 4px;
+            }
+
+            .month-btn {
+                padding: 6px 10px;
+                font-size: 0.75rem;
+            }
+
+            .container {
+                padding: 10px;
+            }
+
+            .modal-content {
+                width: 95%;
+                padding: 20px;
+            }
+
+            .current-month-display {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="current-month-display" id="currentMonthDisplay">
+            <div>
+                <i class="fas fa-calendar-alt"></i> <span id="monthName">Agosto 2025</span>
+            </div>
+        </div>
+
+        <div class="month-selector">
+            <button class="month-btn" data-month="0">Janeiro</button>
+            <button class="month-btn" data-month="1">Fevereiro</button>
+            <button class="month-btn" data-month="2">Março</button>
+            <button class="month-btn" data-month="3">Abril</button>
+            <button class="month-btn" data-month="4">Maio</button>
+            <button class="month-btn" data-month="5">Junho</button>
+            <button class="month-btn" data-month="6">Julho</button>
+            <button class="month-btn" data-month="7">Agosto</button>
+            <button class="month-btn" data-month="8">Setembro</button>
+            <button class="month-btn" data-month="9">Outubro</button>
+            <button class="month-btn" data-month="10">Novembro</button>
+            <button class="month-btn" data-month="11">Dezembro</button>
+        </div>
+
+        <div class="kpi-section month-transition">
+            <div class="kpi-card">
+                <div class="kpi-icon receita"><i class="fas fa-arrow-up"></i></div>
+                <div class="kpi-title">Receita Total</div>
+                <div class="kpi-value receita" id="totalReceita">R$ 0,00</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-icon gasto"><i class="fas fa-arrow-down"></i></div>
+                <div class="kpi-title">Gastos Total</div>
+                <div class="kpi-value gasto" id="totalGastos">R$ 0,00</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-icon saldo"><i class="fas fa-wallet"></i></div>
+                <div class="kpi-title">Saldo</div>
+                <div class="kpi-value saldo" id="saldo">R$ 0,00</div>
+            </div>
+        </div>
+
+        <div class="main-content month-transition">
+            <div class="left-panel">
+                <div class="panel-title"><i class="fas fa-plus-circle"></i> Adicionar Transação</div>
+                
+                <div class="form-group">
+                    <label for="tipo"><i class="fas fa-exchange-alt"></i> Tipo</label>
+                    <select id="tipo">
+                        <option value="receita">💰 Receita</option>
+                        <option value="despesa">💸 Despesa</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="descricao"><i class="fas fa-edit"></i> Descrição</label>
+                    <input type="text" id="descricao" placeholder="Ex: Salário, Supermercado, Pagamento MEI...">
+                </div>
+
+                <div class="form-group">
+                    <label for="valor"><i class="fas fa-dollar-sign"></i> Valor</label>
+                    <input type="number" id="valor" step="0.01" placeholder="0,00">
+                </div>
+
+                <div class="form-group">
+                    <label for="contaBancaria"><i class="fas fa-university"></i> Conta Bancária</label>
+                    <select id="contaBancaria">
+                        <option value="">Selecione uma conta...</option>
+                    </select>
+                </div>
+
+                <div class="form-group" id="categoriaGroup">
+                    <label for="categoria"><i class="fas fa-tags"></i> Categoria</label>
+                    <select id="categoria">
+                        <optgroup label="Pessoal">
+                            <option value="cartao">💳 Cartão</option>
+                            <option value="comida">🍽️ Comida</option>
+                            <option value="transporte">🚗 Transporte</option>
+                            <option value="aluguel">🏠 Aluguel</option>
+                            <option value="agua">💧 Água</option>
+                            <option value="energia">⚡ Energia</option>
+                            <option value="condominio">🏢 Condomínio</option>
+                        </optgroup>
+                        <optgroup label="Profissional">
+                            <option value="mei">📋 Pagamento MEI</option>
+                            <option value="despesas_trabalho">💼 Despesas de Trabalho</option>
+                            <option value="equipamentos">🖥️ Equipamentos</option>
+                            <option value="software">💻 Software/Licenças</option>
+                            <option value="marketing">📢 Marketing</option>
+                            <option value="impostos">📊 Impostos</option>
+                        </optgroup>
+                    </select>
+                </div>
+
+                <div class="form-buttons">
+                    <button class="btn btn-success" onclick="adicionarTransacao()">
+                        <i class="fas fa-plus"></i> Adicionar
+                    </button>
+                    <button class="btn btn-primary" onclick="limparFormulario()">
+                        <i class="fas fa-eraser"></i> Limpar
+                    </button>
+                </div>
+            </div>
+
+            <div class="middle-panel">
+                <div class="panel-title"><i class="fas fa-list"></i> Transações do Mês</div>
+                
+                <div class="transactions-section" id="transacoes">
+                    <p style="text-align: center; color: #666; margin-top: 50px;">
+                        <i class="fas fa-inbox"></i><br>
+                        Nenhuma transação encontrada
+                    </p>
+                </div>
+
+                <div class="categories-section">
+                    <h3 class="categories-title"><i class="fas fa-chart-pie"></i> Gastos por Categoria</h3>
+                    <div id="categorias"></div>
+                </div>
+            </div>
+
+            <div class="right-panel">
+                <div class="panel-title"><i class="fas fa-university"></i> Contas Bancárias</div>
+                
+                <div class="add-bank-form hidden" id="addBankForm">
+                    <div class="form-group">
+                        <label for="bankName">Nome da Conta</label>
+                        <input type="text" id="bankName" placeholder="Ex: Nubank, Itaú, Caixa...">
+                    </div>
+                    <div class="form-group">
+                        <label for="bankBalance">Saldo Inicial</label>
+                        <input type="number" id="bankBalance" step="0.01" placeholder="0,00">
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn btn-success btn-small" onclick="salvarContaBancaria()">
+                            <i class="fas fa-save"></i> Salvar
+                        </button>
+                        <button class="btn btn-danger btn-small" onclick="cancelarAdicionarConta()">
+                            <i class="fas fa-times"></i> Cancelar
+                        </button>
+                    </div>
+                </div>
+
+                <button class="btn cofrinho-btn" style="margin-bottom: 10px;" onclick="abrirModalCofrinho()">
+                    <i class="fas fa-piggy-bank"></i> Cofrinho
+                </button>
+
+                <button class="btn btn-primary" onclick="mostrarFormularioAdicionarConta()" id="btnAdicionarConta">
+                    <i class="fas fa-plus"></i> Adicionar Conta
+                </button>
+
+                <div class="bank-accounts-section" id="bankAccounts">
+                    <p style="text-align: center; color: #666; margin-top: 30px;">
+                        <i class="fas fa-university"></i><br>
+                        Nenhuma conta bancária cadastrada
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal do Cofrinho -->
+    <div id="cofrinhoModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">
+                    <i class="fas fa-piggy-bank" style="color: #ffc107;"></i>
+                    Meu Cofrinho
+                </h2>
+                <span class="close" onclick="fecharModalCofrinho()">&times;</span>
+            </div>
+
+            <div class="cofrinho-list" id="cofrinhoList">
+                <p style="text-align: center; color: #666; margin: 30px 0;">
+                    <i class="fas fa-piggy-bank" style="font-size: 2rem; color: #ffc107;"></i><br>
+                    Nenhum cofrinho criado ainda
+                </p>
+            </div>
+
+            <div class="form-group">
+                <label for="cofrinhoNome"><i class="fas fa-tag"></i> Nome do Cofrinho</label>
+                <input type="text" id="cofrinhoNome" placeholder="Ex: Viagem, Emergência, Novo Celular...">
+            </div>
+
+            <div class="form-group">
+                <label for="cofrinhoValor"><i class="fas fa-coins"></i> Valor</label>
+                <input type="number" id="cofrinhoValor" step="0.01" placeholder="0,00">
+            </div>
+
+            <div class="form-group">
+                <label for="cofrinhoDescricao"><i class="fas fa-comment"></i> Descrição (opcional)</label>
+                <input type="text" id="cofrinhoDescricao" placeholder="Para que você está juntando esse dinheiro?">
+            </div>
+
+            <div style="display: flex; gap: 10px; justify-content: center;">
+                <button class="btn btn-warning" onclick="adicionarCofrinho()">
+                    <i class="fas fa-plus"></i> Adicionar ao Cofrinho
+                </button>
+                <button class="btn btn-primary" onclick="fecharModalCofrinho()">
+                    <i class="fas fa-times"></i> Fechar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentMonth = new Date().getMonth();
+        let currentYear = new Date().getFullYear();
+        let transactions = {};
+        let bankAccounts = [];
+        let cofrinhos = [];
+        let editingBankId = null;
+
+        const monthNames = [
+            'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+            'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+        ];
+
+        // Inicializar aplicação
+        document.addEventListener('DOMContentLoaded', function() {
+            setActiveMonth(currentMonth);
+            updateMonthDisplay();
+            loadData();
+            loadBankAccounts();
+            loadCofrinhos();
+            
+            // Event listener para mudança de tipo
+            document.getElementById('tipo').addEventListener('change', function() {
+                const categoriaGroup = document.getElementById('categoriaGroup');
+                if (this.value === 'receita') {
+                    categoriaGroup.style.display = 'none';
+                } else {
+                    categoriaGroup.style.display = 'block';
+                }
+            });
+
+            // Event listeners para botões de mês
+            document.querySelectorAll('.month-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const newMonth = parseInt(this.dataset.month);
+                    if (newMonth !== currentMonth) {
+                        changeMonth(newMonth);
+                    }
+                });
+            });
+
+            // Event listener para fechar modal clicando fora
+            window.addEventListener('click', function(event) {
+                const modal = document.getElementById('cofrinhoModal');
+                if (event.target === modal) {
+                    fecharModalCofrinho();
+                }
+            });
+        });
+
+        function changeMonth(month) {
+            // Animação de saída
+            const transitionElements = document.querySelectorAll('.month-transition');
+            transitionElements.forEach(el => {
+                el.classList.remove('active');
+            });
+
+            setTimeout(() => {
+                currentMonth = month;
+                setActiveMonth(currentMonth);
+                updateMonthDisplay();
+                updateDisplay();
+                
+                // Animação de entrada
+                transitionElements.forEach(el => {
+                    el.classList.add('active');
+                });
+            }, 250);
+        }
+
+        function setActiveMonth(month) {
+            document.querySelectorAll('.month-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`[data-month="${month}"]`).classList.add('active');
+        }
+
+        function updateMonthDisplay() {
+            const monthDisplay = document.getElementById('monthName');
+            monthDisplay.textContent = `${monthNames[currentMonth]} ${currentYear}`;
+        }
+
+        // Funções do Cofrinho
+        function abrirModalCofrinho() {
+            document.getElementById('cofrinhoModal').classList.add('show');
+            updateCofrinhoDisplay();
+        }
+
+        function fecharModalCofrinho() {
+            document.getElementById('cofrinhoModal').classList.remove('show');
+            limparFormularioCofrinho();
+        }
+
+        function limparFormularioCofrinho() {
+            document.getElementById('cofrinhoNome').value = '';
+            document.getElementById('cofrinhoValor').value = '';
+            document.getElementById('cofrinhoDescricao').value = '';
+        }
+
+        async function adicionarCofrinho() {
+            const nome = document.getElementById('cofrinhoNome').value.trim();
+            const valor = parseFloat(document.getElementById('cofrinhoValor').value);
+            const descricao = document.getElementById('cofrinhoDescricao').value.trim();
+
+            if (!nome) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Erro!',
+                    text: 'Por favor, insira o nome do cofrinho.',
+                    confirmButtonColor: '#4a90e2'
+                });
+                return;
+            }
+
+            if (!valor || valor <= 0) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Erro!',
+                    text: 'Por favor, insira um valor válido.',
+                    confirmButtonColor: '#4a90e2'
+                });
+                return;
+            }
+
+            const novoCofrinho = {
+                id: Date.now(),
+                nome: nome,
+                valor: valor,
+                descricao: descricao || '',
+                dataCreacao: new Date().toISOString()
+            };
+
+            cofrinhos.push(novoCofrinho);
+            await saveCofrinhos();
+            updateCofrinhoDisplay();
+            limparFormularioCofrinho();
+
+            Swal.fire({
+                icon: 'success',
+                title: 'Sucesso!',
+                text: 'Cofrinho adicionado com sucesso!',
+                timer: 1500,
+                showConfirmButton: false
+            });
+        }
+
+        async function usarCofrinho(id, tipo) {
+            const cofrinho = cofrinhos.find(c => c.id === id);
+            if (!cofrinho) return;
+
+            const { value: contaBancariaId } = await Swal.fire({
+                title: `Usar ${formatCurrency(cofrinho.valor)} do cofrinho "${cofrinho.nome}"`,
+                text: `Selecione a conta bancária para ${tipo === 'receita' ? 'adicionar' : 'descontar'} o valor:`,
+                input: 'select',
+                inputOptions: getBankAccountsOptions(),
+                inputPlaceholder: 'Selecione uma conta...',
+                showCancelButton: true,
+                confirmButtonText: 'Confirmar',
+                cancelButtonText: 'Cancelar',
+                confirmButtonColor: '#4a90e2',
+                inputValidator: (value) => {
+                    if (!value) {
+                        return 'Você precisa selecionar uma conta bancária!';
+                    }
+                }
+            });
+
+            if (contaBancariaId) {
+                // Atualizar saldo da conta bancária
+                const account = bankAccounts.find(acc => acc.id === parseInt(contaBancariaId));
+                if (account) {
+                    if (tipo === 'receita') {
+                        account.balance += cofrinho.valor;
+                    } else {
+                        account.balance -= cofrinho.valor;
+                    }
+                }
+
+                // Criar transação
+                const transacao = {
+                    id: Date.now(),
+                    tipo: tipo,
+                    descricao: `${tipo === 'receita' ? 'Receita' : 'Despesa'} do cofrinho: ${cofrinho.nome}`,
+                    valor: cofrinho.valor,
+                    categoria: tipo === 'despesa' ? 'cartao' : 'receita',
+                    contaBancaria: parseInt(contaBancariaId),
+                    data: new Date(),
+                    mes: currentMonth,
+                    ano: currentYear
+                };
+
+                // Salvar localmente
+                if (!transactions[currentMonth]) {
+                    transactions[currentMonth] = [];
+                }
+                transactions[currentMonth].push(transacao);
+
+                // Remover cofrinho
+                cofrinhos = cofrinhos.filter(c => c.id !== id);
+
+                // Salvar no servidor
+                await saveData();
+                await saveBankAccounts();
+                await saveCofrinhos();
+
+                // Atualizar displays
+                updateDisplay();
+                updateBankAccountsDisplay();
+                updateBankAccountsSelect();
+                updateCofrinhoDisplay();
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Sucesso!',
+                    text: `Valor do cofrinho usado como ${tipo}!`,
+                    timer: 1500,
+                    showConfirmButton: false
+                });
+            }
+        }
+
+        function getBankAccountsOptions() {
+            const options = {};
+            bankAccounts.forEach(account => {
+                options[account.id] = `${account.name} (${formatCurrency(account.balance)})`;
+            });
+            return options;
+        }
+
+        async function excluirCofrinho(id) {
+            const result = await Swal.fire({
+                title: 'Tem certeza?',
+                text: 'Esta ação não pode ser desfeita!',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#e74c3c',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Sim, excluir!',
+                cancelButtonText: 'Cancelar'
+            });
+
+            if (result.isConfirmed) {
+                cofrinhos = cofrinhos.filter(c => c.id !== id);
+                await saveCofrinhos();
+                updateCofrinhoDisplay();
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Excluído!',
+                    text: 'Cofrinho excluído com sucesso.',
+                    timer: 1500,
+                    showConfirmButton: false
+                });
+            }
+        }
+
+        function updateCofrinhoDisplay() {
+            const container = document.getElementById('cofrinhoList');
+            
+            if (cofrinhos.length === 0) {
+                container.innerHTML = `
+                    <p style="text-align: center; color: #666; margin: 30px 0;">
+                        <i class="fas fa-piggy-bank" style="font-size: 2rem; color: #ffc107;"></i><br>
+                        Nenhum cofrinho criado ainda
+                    </p>
+                `;
+                return;
+            }
+
+            container.innerHTML = cofrinhos.map(cofrinho => `
+                <div class="cofrinho-item">
+                    <div class="cofrinho-header">
+                        <div class="cofrinho-name">${cofrinho.nome}</div>
+                        <div class="cofrinho-value">${formatCurrency(cofrinho.valor)}</div>
+                    </div>
+                    ${cofrinho.descricao ? `<div class="cofrinho-description">${cofrinho.descricao}</div>` : ''}
+                    <div class="cofrinho-actions">
+                        <button class="btn btn-success btn-small" onclick="usarCofrinho(${cofrinho.id}, 'receita')">
+                            <i class="fas fa-plus"></i> Usar como Receita
+                        </button>
+                        <button class="btn btn-warning btn-small" onclick="usarCofrinho(${cofrinho.id}, 'despesa')">
+                            <i class="fas fa-minus"></i> Usar como Despesa
+                        </button>
+                        <button class="btn btn-danger btn-small" onclick="excluirCofrinho(${cofrinho.id})">
+                            <i class="fas fa-trash"></i> Excluir
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function loadCofrinhos() {
+            try {
+                const response = await fetch('/api/cofrinhos');
+                if (response.ok) {
+                    cofrinhos = await response.json();
+                } else {
+                    cofrinhos = [];
+                }
+            } catch (error) {
+                console.error('Erro ao carregar cofrinhos:', error);
+                cofrinhos = [];
+            }
+        }
+
+        async function saveCofrinhos() {
+            try {
+                await fetch('/api/cofrinhos', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(cofrinhos)
+                });
+            } catch (error) {
+                console.error('Erro ao salvar cofrinhos:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Erro!',
+                    text: 'Erro ao salvar os cofrinhos. Tente novamente.',
+                    confirmButtonColor: '#4a90e2'
+                });
+            }
+        }
+
+        // Resto das funções existentes...
+        async function loadData() {
+            try {
+                const response = await fetch('/api/transactions');
+                if (response.ok) {
+                    transactions = await response.json();
+                } else {
+                    transactions = {};
+                }
+            } catch (error) {
+                console.error('Erro ao carregar dados:', error);
+                transactions = {};
+            }
+            updateDisplay();
+        }
+
+        async function saveData() {
+            try {
+                await fetch('/api/transactions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(transactions)
+                });
+            } catch (error) {
+                console.error('Erro ao salvar dados:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Erro!',
+                    text: 'Erro ao salvar os dados. Tente novamente.',
+                    confirmButtonColor: '#4a90e2'
+                });
+            }
+        }
+
+        async function loadBankAccounts() {
+            try {
+                const response = await fetch('/api/bank-accounts');
+                if (response.ok) {
+                    bankAccounts = await response.json();
+                } else {
+                    bankAccounts = [];
+                }
+            } catch (error) {
+                console.error('Erro ao carregar contas bancárias:', error);
+                bankAccounts = [];
+            }
+            updateBankAccountsDisplay();
+            updateBankAccountsSelect();
+        }
+
+        async function saveBankAccounts() {
+            try {
+                await fetch('/api/bank-accounts', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(bankAccounts)
+                });
+            } catch (error) {
+                console.error('Erro ao salvar contas bancárias:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Erro!',
+                    text: 'Erro ao salvar as contas bancárias. Tente novamente.',
+                    confirmButtonColor: '#4a90e2'
+                });
+            }
+        }
+
+        function mostrarFormularioAdicionarConta() {
+            document.getElementById('addBankForm').classList.remove('hidden');
+            document.getElementById('btnAdicionarConta').style.display = 'none';
+            document.getElementById('bankName').focus();
+        }
+
+        function cancelarAdicionarConta() {
+            document.getElementById('addBankForm').classList.add('hidden');
+            document.getElementById('btnAdicionarConta').style.display = 'block';
+            document.getElementById('bankName').value = '';
+            document.getElementById('bankBalance').value = '';
+            editingBankId = null;
+        }
+
+        async function salvarContaBancaria() {
+            const name = document.getElementById('bankName').value.trim();
+            const balance = parseFloat(document.getElementById('bankBalance').value);
+
+            if (!name) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Erro!',
+                    text: 'Por favor, insira o nome da conta.',
+                    confirmButtonColor: '#4a90e2'
+                });
+                return;
+            }
+
+            if (isNaN(balance)) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Erro!',
+                    text: 'Por favor, insira um saldo válido.',
+                    confirmButtonColor: '#4a90e2'
+                });
+                return;
+            }
+
+            if (editingBankId !== null) {
+                // Editando conta existente
+                const account = bankAccounts.find(acc => acc.id === editingBankId);
+                if (account) {
+                    account.name = name;
+                    account.balance = balance;
+                }
+            } else {
+                // Adicionando nova conta
+                const newAccount = {
+                    id: Date.now(),
+                    name: name,
+                    balance: balance
+                };
+                bankAccounts.push(newAccount);
+            }
+
+            await saveBankAccounts();
+            updateBankAccountsDisplay();
+            updateBankAccountsSelect();
+            cancelarAdicionarConta();
+
+            Swal.fire({
+                icon: 'success',
+                title: 'Sucesso!',
+                text: 'Conta bancária salva com sucesso!',
+                timer: 1500,
+                showConfirmButton: false
+            });
+        }
+
+        function editarContaBancaria(id) {
+            const account = bankAccounts.find(acc => acc.id === id);
+            if (account) {
+                document.getElementById('bankName').value = account.name;
+                document.getElementById('bankBalance').value = account.balance;
+                editingBankId = id;
+                mostrarFormularioAdicionarConta();
+            }
+        }
+
+        async function excluirContaBancaria(id) {
+            const result = await Swal.fire({
+                title: 'Tem certeza?',
+                text: 'Esta ação não pode ser desfeita!',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#e74c3c',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Sim, excluir!',
+                cancelButtonText: 'Cancelar'
+            });
+
+            if (result.isConfirmed) {
+                bankAccounts = bankAccounts.filter(acc => acc.id !== id);
+                await saveBankAccounts();
+                updateBankAccountsDisplay();
+                updateBankAccountsSelect();
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Excluída!',
+                    text: 'Conta bancária excluída com sucesso.',
+                    timer: 1500,
+                    showConfirmButton: false
+                });
+            }
+        }
+
+        function updateBankAccountsDisplay() {
+            const container = document.getElementById('bankAccounts');
+            
+            if (bankAccounts.length === 0) {
+                container.innerHTML = `
+                    <p style="text-align: center; color: #666; margin-top: 30px;">
+                        <i class="fas fa-university"></i><br>
+                        Nenhuma conta bancária cadastrada
+                    </p>
+                `;
+                return;
+            }
+
+            container.innerHTML = bankAccounts.map(account => `
+                <div class="bank-account-item">
+                    <div class="bank-account-header">
+                        <div class="bank-account-name">${account.name}</div>
+                        <div class="bank-account-actions">
+                            <button class="btn btn-warning btn-small" onclick="editarContaBancaria(${account.id})">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-danger btn-small" onclick="excluirContaBancaria(${account.id})">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="bank-account-balance">${formatCurrency(account.balance)}</div>
+                </div>
+            `).join('');
+        }
+
+        function updateBankAccountsSelect() {
+            const select = document.getElementById('contaBancaria');
+            select.innerHTML = '<option value="">Selecione uma conta...</option>';
+            
+            bankAccounts.forEach(account => {
+                const option = document.createElement('option');
+                option.value = account.id;
+                option.textContent = `${account.name} (${formatCurrency(account.balance)})`;
+                select.appendChild(option);
+            });
+        }
+
+        async function adicionarTransacao() {
+            const tipo = document.getElementById('tipo').value;
+            const descricao = document.getElementById('descricao').value.trim();
+            const valor = parseFloat(document.getElementById('valor').value);
+            const categoria = document.getElementById('categoria').value;
+            const contaBancariaId = document.getElementById('contaBancaria').value;
+
+            // Validações
+            if (!descricao) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Erro!',
+                    text: 'Por favor, insira uma descrição.',
+                    confirmButtonColor: '#4a90e2'
+                });
+                return;
+            }
+
+            if (!valor || valor <= 0) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Erro!',
+                    text: 'Por favor, insira um valor válido.',
+                    confirmButtonColor: '#4a90e2'
+                });
+                return;
+            }
+
+            if (!contaBancariaId) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Erro!',
+                    text: 'Por favor, selecione uma conta bancária.',
+                    confirmButtonColor: '#4a90e2'
+                });
+                return;
+            }
+
+            // Atualizar saldo da conta bancária
+            const account = bankAccounts.find(acc => acc.id === parseInt(contaBancariaId));
+            if (account) {
+                if (tipo === 'receita') {
+                    account.balance += valor;
+                } else {
+                    account.balance -= valor;
+                }
+            }
+
+            // Criar transação
+            const transacao = {
+                id: Date.now(),
+                tipo: tipo,
+                descricao: descricao,
+                valor: valor,
+                categoria: tipo === 'despesa' ? categoria : 'receita',
+                contaBancaria: parseInt(contaBancariaId),
+                data: new Date(),
+                mes: currentMonth,
+                ano: currentYear
+            };
+
+            // Salvar localmente
+            if (!transactions[currentMonth]) {
+                transactions[currentMonth] = [];
+            }
+            transactions[currentMonth].push(transacao);
+
+            // Salvar no servidor
+            await saveData();
+            await saveBankAccounts();
+
+            // Feedback de sucesso
+            Swal.fire({
+                icon: 'success',
+                title: 'Sucesso!',
+                text: `${tipo === 'receita' ? 'Receita' : 'Despesa'} adicionada com sucesso!`,
+                timer: 1500,
+                showConfirmButton: false
+            });
+
+            // Limpar formulário e atualizar display
+            limparFormulario();
+            updateDisplay();
+            updateBankAccountsDisplay();
+            updateBankAccountsSelect();
+        }
+
+        function limparFormulario() {
+            document.getElementById('descricao').value = '';
+            document.getElementById('valor').value = '';
+            document.getElementById('tipo').value = 'receita';
+            document.getElementById('contaBancaria').value = '';
+            document.getElementById('categoriaGroup').style.display = 'none';
+        }
+
+        function updateDisplay() {
+            const monthTransactions = transactions[currentMonth] || [];
+            
+            // Calcular totais
+            let totalReceita = 0;
+            let totalGastos = 0;
+            let gastosPorCategoria = {};
+
+            monthTransactions.forEach(t => {
+                if (t.tipo === 'receita') {
+                    totalReceita += t.valor;
+                } else {
+                    totalGastos += t.valor;
+                    gastosPorCategoria[t.categoria] = (gastosPorCategoria[t.categoria] || 0) + t.valor;
+                }
+            });
+
+            const saldo = totalReceita - totalGastos;
+
+            // Atualizar KPIs com animação
+            animateValue('totalReceita', totalReceita);
+            animateValue('totalGastos', totalGastos);
+            animateValue('saldo', saldo);
+
+            // Atualizar cor do saldo
+            const saldoElement = document.getElementById('saldo');
+            saldoElement.className = 'kpi-value ' + (saldo >= 0 ? 'receita' : 'gasto');
+
+            // Atualizar lista de transações
+            updateTransactionsList(monthTransactions);
+
+            // Atualizar gastos por categoria
+            updateCategoriesList(gastosPorCategoria);
+        }
+
+        function animateValue(elementId, finalValue) {
+            const element = document.getElementById(elementId);
+            const startValue = parseFloat(element.textContent.replace(/[^\d,-]/g, '').replace(',', '.')) || 0;
+            const duration = 800;
+            const startTime = performance.now();
+
+            function animate(currentTime) {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                
+                const easeOutQuart = 1 - Math.pow(1 - progress, 4);
+                const currentValue = startValue + (finalValue - startValue) * easeOutQuart;
+                
+                element.textContent = formatCurrency(currentValue);
+                
+                if (progress < 1) {
+                    requestAnimationFrame(animate);
+                }
+            }
+            
+            requestAnimationFrame(animate);
+        }
+
+        function updateTransactionsList(transactions) {
+            const container = document.getElementById('transacoes');
+            
+            if (transactions.length === 0) {
+                container.innerHTML = `
+                    <p style="text-align: center; color: #666; margin-top: 50px;">
+                        <i class="fas fa-inbox"></i><br>
+                        Nenhuma transação encontrada
+                    </p>
+                `;
+                return;
+            }
+
+            // Ordenar por data (mais recente primeiro)
+            transactions.sort((a, b) => new Date(b.data) - new Date(a.data));
+
+            container.innerHTML = transactions.map((t, index) => {
+                const account = bankAccounts.find(acc => acc.id === t.contaBancaria);
+                const accountName = account ? account.name : 'Conta não encontrada';
+                
+                return `
+                    <div class="transaction-item ${t.tipo}" style="animation-delay: ${index * 0.1}s">
+                        <div class="transaction-info">
+                            <div class="transaction-desc">${t.descricao}</div>
+                            <div class="transaction-category">
+                                ${t.tipo === 'despesa' ? getCategoryLabel(t.categoria) : ''} • ${accountName}
+                            </div>
+                        </div>
+                        <div class="transaction-value ${t.tipo}">
+                            ${t.tipo === 'receita' ? '+' : '-'} ${formatCurrency(t.valor)}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function updateCategoriesList(gastosPorCategoria) {
+            const container = document.getElementById('categorias');
+            
+            if (Object.keys(gastosPorCategoria).length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #666;">Nenhum gasto por categoria</p>';
+                return;
+            }
+
+            // Ordenar por valor (maior primeiro)
+            const sortedCategories = Object.entries(gastosPorCategoria)
+                .sort(([,a], [,b]) => b - a);
+
+            container.innerHTML = sortedCategories.map(([categoria, valor]) => `
+                <div class="category-item">
+                    <div class="category-name">${getCategoryLabel(categoria)}</div>
+                    <div class="category-value">${formatCurrency(valor)}</div>
+                </div>
+            `).join('');
+        }
+
+        function getCategoryLabel(categoria) {
+            const labels = {
+                'cartao': '💳 Cartão',
+                'comida': '🍽️ Comida',
+                'transporte': '🚗 Transporte',
+                'aluguel': '🏠 Aluguel',
+                'agua': '💧 Água',
+                'energia': '⚡ Energia',
+                'condominio': '🏢 Condomínio',
+                'mei': '📋 Pagamento MEI',
+                'despesas_trabalho': '💼 Despesas de Trabalho',
+                'equipamentos': '🖥️ Equipamentos',
+                'software': '💻 Software/Licenças',
+                'marketing': '📢 Marketing',
+                'impostos': '📊 Impostos'
+            };
+            return labels[categoria] || categoria;
+        }
+
+        function formatCurrency(value) {
+            return new Intl.NumberFormat('pt-BR', {
+                style: 'currency',
+                currency: 'BRL'
+            }).format(value);
+        }
+
+        // Inicializar animações
+        setTimeout(() => {
+            document.querySelectorAll('.month-transition').forEach(el => {
+                el.classList.add('active');
+            });
+        }, 100);
+    </script>
+</body>
+</html>
+
